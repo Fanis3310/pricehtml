@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="el">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Give Price</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+        :root {
+            /* Fallback colors if Telegram variables are not injected */
+            --bg-color: var(--tg-theme-bg-color, #1c1c1e);
+            --text-color: var(--tg-theme-text-color, #ffffff);
+            --button-color: var(--tg-theme-button-color, #0a84ff);
+            --button-text-color: var(--tg-theme-button-text-color, #ffffff);
+            --hint-color: var(--tg-theme-hint-color, #8e8e93);
+            --secondary-bg-color: var(--tg-theme-secondary-bg-color, #2c2c2e);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            min-height: 100dvh;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            background: var(--secondary-bg-color);
+            border-radius: 20px;
+            padding: 32px 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            text-align: center;
+            animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h3 {
+            margin-top: 0;
+            margin-bottom: 24px;
+            font-size: 22px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        input {
+            width: 100%;
+            padding: 16px 18px;
+            font-size: 16px;
+            font-family: inherit;
+            border-radius: 14px;
+            border: 1px solid rgba(150, 150, 150, 0.2);
+            background: var(--bg-color);
+            color: var(--text-color);
+            box-sizing: border-box;
+            transition: all 0.25s ease;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input::placeholder {
+            color: var(--hint-color);
+            opacity: 0.8;
+            font-weight: 400;
+        }
+
+        input:focus {
+            border-color: var(--button-color);
+            box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.2);
+        }
+
+        button {
+            width: 100%;
+            padding: 16px 20px;
+            background: var(--button-color);
+            color: var(--button-text-color);
+            border: none;
+            border-radius: 14px;
+            font-size: 17px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 14px rgba(10, 132, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        button:active {
+            transform: scale(0.96);
+        }
+
+        button:hover {
+            opacity: 0.95;
+            box-shadow: 0 6px 20px rgba(10, 132, 255, 0.4);
+        }
+
+        .shake {
+            animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translateX(-1px); }
+            20%, 80% { transform: translateX(2px); }
+            30%, 50%, 70% { transform: translateX(-4px); }
+            40%, 60% { transform: translateX(4px); }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h3>💰 Δώσε Τιμή</h3>
+        <div class="input-group">
+            <input type="text" id="price" placeholder="π.χ. 25 ή 20-30" inputmode="text" autocomplete="off" />
+        </div>
+        <button id="submitBtn" onclick="submitPrice()">✅ Αποστολή</button>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        const params = new URLSearchParams(window.location.search);
+        const resumeUrl = params.get('resume');
+
+        function submitPrice() {
+            const priceInput = document.getElementById('price');
+            const btn = document.getElementById('submitBtn');
+            const price = priceInput.value.trim();
+
+            if (!price) {
+                // Visual feedback instead of blocking alert
+                priceInput.classList.add('shake');
+                setTimeout(() => priceInput.classList.remove('shake'), 400);
+                
+                if (tg.showAlert) {
+                    tg.showAlert('Παρακαλώ γράψε μια τιμή!');
+                } else {
+                    alert('Γράψε τιμή!');
+                }
+                return;
+            }
+
+            // Loading state
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⏳ Αποστολή...';
+            btn.style.opacity = '0.8';
+            btn.disabled = true;
+
+            if (resumeUrl) {
+                fetch(resumeUrl + '&price=' + encodeURIComponent(price))
+                    .then(() => tg.close())
+                    .catch((err) => {
+                        console.error('Error submitting:', err);
+                        tg.showAlert('Υπήρξε κάποιο σφάλμα. Δοκίμασε ξανά.');
+                        btn.innerHTML = originalText;
+                        btn.style.opacity = '1';
+                        btn.disabled = false;
+                    });
+            } else {
+                // Backup if no resume URL
+                tg.close();
+            }
+        }
+    </script>
+</body>
+
+</html>
