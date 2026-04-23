@@ -231,7 +231,7 @@
 
             if (resumeUrl) {
                 // Redirect — λύνει το CORS πρόβλημα
-                window.location.href = resumeUrl + '&price=' + encodeURIComponent(price);
+                window.location.href = resumeUrl + '?price=' + encodeURIComponent(price);
             } else {
                 showSuccess();
             }
