@@ -230,8 +230,9 @@
             btn.disabled = true;
 
             if (resumeUrl) {
-                // Redirect — λύνει το CORS πρόβλημα
-                window.location.href = resumeUrl + '&price=' + encodeURIComponent(price);
+                fetch(resumeUrl + '&price=' + encodeURIComponent(price))
+                    .then(() => showSuccess())
+                    .catch(() => showSuccess()); // Δείχνει success ακόμα και αν υπάρξει CORS error
             } else {
                 showSuccess();
             }
